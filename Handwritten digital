@@ -1,0 +1,52 @@
+import pandas as pd
+import numpy as np
+from sklearn.datasets import fetch_openml
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score
+from sklearn.preprocessing import StandardScaler
+import matplotlib.pyplot as plt
+
+# Load the MNIST dataset
+mnist = fetch_openml('mnist_784')
+
+# Convert the data into pandas DataFrame
+df = pd.DataFrame(data=mnist.data, columns=mnist.feature_names)
+df['target'] = mnist.target
+
+# Split the dataset into features (X) and target (y)
+X = df.drop('target', axis=1)
+y = df['target']
+
+# Split the dataset into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Scale the image data
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+
+# Create an instance of the Random Forest model
+model = RandomForestClassifier(n_estimators=100)
+
+# Train the model
+model.fit(X_train_scaled, y_train)
+
+# Make predictions on the test set
+y_pred = model.predict(X_test_scaled)
+
+# Calculate model accuracy
+accuracy = accuracy_score(y_test, y_pred)
+print("Accuracy:", accuracy)
+
+# Visualize a sample of the handwritten digits
+fig, axes = plt.subplots(2, 5, figsize=(10, 4))
+axes = axes.ravel()
+
+for i in np.arange(10):
+    axes[i].imshow(X_test.iloc[i].values.reshape(28, 28), cmap='gray')
+    axes[i].set_title("Predicted: %s\nActual: %s" % (y_pred[i], y_test.iloc[i]))
+    axes[i].axis('off')
+
+plt.tight_layout()
+plt.show()
